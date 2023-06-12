@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-deploy
+  labels:
+    app.kubernetes.io/name: django
+    app.kubernetes.io/instance: django-test
+    app.kubernetes.io/component: web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: django
+      app.kubernetes.io/instance: django-test
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: django
+        app.kubernetes.io/instance: django-test
+        app.kubernetes.io/component: web
+    spec:
+      containers:
+        - name: django
+          image: django_app
+          ports:
+            - containerPort: 80
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: django-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: django
+    app.kubernetes.io/instance: django-test
+    app.kubernetes.io/component: web
+  name: django-deploy-service
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: django
+    app.kubernetes.io/instance: django-test
+    app.kubernetes.io/component: web
