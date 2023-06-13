@@ -5,11 +5,13 @@ metadata:
 spec:
   schedule: "0 0 1 * *"
   successfulJobsHistoryLimit: 1
+  startingDeadlineSeconds: 90
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       backoffLimit: 3
       activeDeadlineSeconds: 30
+      ttlSecondsAfterFinished: 60
       template:
         spec:
           containers:
