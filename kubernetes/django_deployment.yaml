@@ -29,6 +29,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: django-config
+            - secretRef:
+                name: django-secrets
 ---
 apiVersion: v1
 kind: Service

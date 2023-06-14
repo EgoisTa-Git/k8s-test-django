@@ -24,4 +24,6 @@ spec:
               envFrom:
                 - configMapRef:
                     name: django-config
+                - secretRef:
+                    name: django-secrets
           restartPolicy: Never

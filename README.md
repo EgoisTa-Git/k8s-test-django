@@ -62,12 +62,23 @@ CREATE DATABASE <database-name> OWNER <username>;
 DATABASE_URL: postgres://<username>:<your-password>@test-db-postgresql:5432/<database-name>
 ```
 
+Создать .env файл с двумя переменными окружения:
+```dotenv
+SECRET_KEY=put-your-secret-key-here
+DATABASE_URL=postgres://...
+```
+
+Создать `Secret` c именем `django-secrets` используя файл `.env` в корневой директории проекта
+```shell
+kubectl create secret generic django-secrets --from-env-file=./.env
+```
+
 Перейти в директорию `kubernetes`
 ```shell
 cd kubernetes/
 ```
 
-Создать конфиг-файл `django-config.yaml` и в блоке `data` прописать переменные окружения
+Создать конфиг-файл `django-config.yaml` и в блоке `data` прописать переменные окружения `ALLOWED_HOSTS` и `DEBUG`
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -78,10 +89,8 @@ metadata:
     app.kubernetes.io/instance: django-test
     app.kubernetes.io/component: web
 data:
-  DATABASE_URL: postgres://...
-  SECRET_KEY: put-your-secret-key-here
-  DEBUG: "False"
   ALLOWED_HOSTS: "*"
+  DEBUG: "False"
 ```
 
 Перейти обратно в корневую директорию проекта
@@ -131,7 +140,7 @@ echo "$(minikube ip) star-burger.test" | sudo tee -a /etc/hosts
 
 ## Переменные окружения
 
-Образ с Django считывает настройки из переменных окружения внутри `django-config.yaml`:
+Образ с Django считывает настройки из переменных окружения в `django-config.yaml` и в `secrets` (внутри Kubernetes):
 
 `SECRET_KEY` -- обязательная секретная настройка Django. Это соль для генерации хэшей. Значение может быть любым, важно лишь, чтобы оно никому не было известно. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key).
 
