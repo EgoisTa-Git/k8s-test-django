@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: django
-          image: django_app
+          image: egoista1dev/k8s-test-django:092e731
           ports:
             - containerPort: 80
           imagePullPolicy: IfNotPresent

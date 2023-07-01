@@ -6,26 +6,15 @@
 
 ## Как запустить dev-версию
 
-Создать докер-образ Django на основе Nginx Unit
-```shell
-cd backend_main_django/
-```
-
-```shell
-docker build -t django_app .
-```
-
 Запустить minikube (на драйвере VirtualBox)
 ```shell
-minikube start --driver=virtualbox
+minikube start
 ```
 
-Передать образ в minikube
+Подключить аддон ingress для minikube
 ```shell
-minikube image load django_app
+minikube addons enable ingress
 ```
-
-Настроить виртуальную сеть в VirtualBox с двумя сетевыми интерфейсами: Nat + Host-only [по инструкции](https://blogs.oracle.com/scoter/post/oracle-vm-virtualbox-networking-options-and-how-to-manage-them)
 
 Установить [Helm](https://helm.sh/)
 ```shell
