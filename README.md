@@ -4,6 +4,10 @@
 
 Внутри конейнера Django запускается с помощью Nginx Unit, не путать с Nginx. Сервер Nginx Unit выполняет сразу две функции: как веб-сервер он раздаёт файлы статики и медиа, а в роли сервера-приложений он запускает Python и Django. Таким образом Nginx Unit заменяет собой связку из двух сервисов Nginx и Gunicorn/uWSGI. [Подробнее про Nginx Unit](https://unit.nginx.org/).
 
+## Тестовая версия сайта
+
+[Пример тут](https://edu-happy-goldberg.sirius-k8s.dvmn.org/)
+
 ## Как запустить dev-версию
 
 Запустить minikube (на драйвере VirtualBox)
@@ -62,14 +66,9 @@ DATABASE_URL=postgres://...
 kubectl create secret generic django-secrets --from-env-file=./.env
 ```
 
-Для prod-версии: Создать `Secret` c именем `django-secrets` используя файл `.env_prod` в корневой директории проекта
+Перейти в директорию `minikube`
 ```shell
-kubectl create secret generic django-secrets --from-env-file=./.env_prod --namespace=<put-your-namespace-here>
-```
-
-Перейти в директорию `kubernetes`
-```shell
-cd kubernetes/
+cd minikube/
 ```
 
 Создать конфиг-файл `django-config.yaml` и в блоке `data` прописать переменные окружения `ALLOWED_HOSTS` и `DEBUG`
@@ -84,7 +83,7 @@ metadata:
     app.kubernetes.io/component: web
 data:
   ALLOWED_HOSTS: "*"
-  DEBUG: "False"
+  DEBUG: "True"
 ```
 
 Перейти обратно в корневую директорию проекта
@@ -92,9 +91,7 @@ data:
 cd ..
 ```
 
-Для prod-версии используйте префикс `kubernetes` вместо `minikube`
-
-Запустить манифесты для `configmaps`, `deployment`, `ingress` и `cronjob` (для prod-версии `ingress` не используется, вместо него запускается `service` через `NodePort`)
+Запустить манифесты для `configmaps`, `deployment`, `ingress` и `cronjob`
 ```shell
 kubectl apply -f minikube/
 ```
@@ -132,6 +129,82 @@ kubectl exec -it <django-deploy-pod-name> -- python manage.py createsuperuser
 Обновить файл /etc/hosts для маршрутизации запросов от [star-burger.test](star-burger.test)
 ```shell
 echo "$(minikube ip) star-burger.test" | sudo tee -a /etc/hosts
+```
+
+## Как запустить prod-версию
+
+Подключиться к кластеру (например через [Lens](https://k8slens.dev/))
+
+Создать .env_prod файл с двумя переменными окружения:
+```dotenv
+SECRET_KEY=put-your-secret-key-here
+DATABASE_URL=postgres://...
+```
+
+Для prod-версии: Создать `Secret` c именем `django-secrets` используя файл `.env_prod` в корневой директории проекта
+```shell
+kubectl create secret generic django-secrets --from-env-file=./.env_prod --namespace=<put-your-namespace-here>
+```
+
+Перейти в директорию `kubernetes`
+```shell
+cd kubernetes/
+```
+
+Создать конфиг-файл `django-config.yaml` и в блоке `data` прописать переменные окружения `ALLOWED_HOSTS` и `DEBUG`
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: django-config
+  namespace: <put-your-namespace-here>
+  labels:
+    app.kubernetes.io/name: django
+    app.kubernetes.io/instance: django-test
+    app.kubernetes.io/component: web
+data:
+  ALLOWED_HOSTS: "*"
+  DEBUG: "False"
+```
+
+Перейти обратно в корневую директорию проекта
+```shell
+cd ..
+```
+
+Запустить манифесты для `configmaps`, `deployment` и `cronjob` (для prod-версии `ingress` не используется, вместо него запускается `service` через `NodePort`)
+```shell
+kubectl apply -f kubernetes/
+```
+
+Проверить работу всех компонентов:
+```shell
+kubectl get deployments.apps,pods,service,configmaps,cronjobs.batch
+```
+
+Для изменения настроек (после внесения изменений в `ConfigMap`)
+```shell
+kubectl apply -f kubernetes/ && kubectl rollout restart deployment django-deploy
+```
+
+Для запуска процесса миграций в БД
+```shell
+kubectl apply -f django-migrate-job-prod.yaml
+```
+
+Для проверки прошедших миграций
+```shell
+kubectl logs <name of django-migrate-job pod>
+```
+
+Список подов можно вывести так
+```shell
+kubectl get pods
+```
+
+Создать супер-пользователя Django (выбрать можно любой из рабочих подов `deploy`)
+```shell
+kubectl exec -it <django-deploy-pod-name> -- python manage.py createsuperuser
 ```
 
 ## Переменные окружения
