@@ -62,6 +62,11 @@ DATABASE_URL=postgres://...
 kubectl create secret generic django-secrets --from-env-file=./.env
 ```
 
+Для prod-версии: Создать `Secret` c именем `django-secrets` используя файл `.env_prod` в корневой директории проекта
+```shell
+kubectl create secret generic django-secrets --from-env-file=./.env_prod --namespace=<put-your-namespace-here>
+```
+
 Перейти в директорию `kubernetes`
 ```shell
 cd kubernetes/
@@ -87,9 +92,11 @@ data:
 cd ..
 ```
 
-Запустить манифесты для `configmaps`, `deployment`, `ingress` и `cronjob`
+Для prod-версии используйте префикс `kubernetes` вместо `minikube`
+
+Запустить манифесты для `configmaps`, `deployment`, `ingress` и `cronjob` (для prod-версии `ingress` не используется, вместо него запускается `service` через `NodePort`)
 ```shell
-kubectl apply -f kubernetes/
+kubectl apply -f minikube/
 ```
 
 Проверить работу всех компонентов:
@@ -99,7 +106,7 @@ kubectl get deployments.apps,pods,service,configmaps,ingress,cronjobs.batch
 
 Для изменения настроек (после внесения изменений в `ConfigMap`)
 ```shell
-kubectl apply -f kubernetes/ && kubectl rollout restart deployment django-deploy
+kubectl apply -f minikube/ && kubectl rollout restart deployment django-deploy
 ```
 
 Для запуска процесса миграций в БД

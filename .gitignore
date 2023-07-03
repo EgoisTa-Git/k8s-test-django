@@ -4,4 +4,6 @@ __pycache__/
 *$py.class
 .idea
 .env
+.env_prod
 kubernetes/*-config.yaml
+minikube/*-config.yaml

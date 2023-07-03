@@ -2,13 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: django-deploy
-  namespace: edu-happy-goldberg
   labels:
     app.kubernetes.io/name: django
     app.kubernetes.io/instance: django-test
     app.kubernetes.io/component: web
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app.kubernetes.io/name: django
@@ -16,7 +15,6 @@ spec:
       app.kubernetes.io/component: web
   template:
     metadata:
-      namespace: edu-happy-goldberg
       labels:
         app.kubernetes.io/name: django
         app.kubernetes.io/instance: django-test
@@ -37,19 +35,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: edu-happy-goldberg
   labels:
     app.kubernetes.io/name: django
     app.kubernetes.io/instance: django-test
     app.kubernetes.io/component: web
   name: django-deploy-service
 spec:
-  type: NodePort
   ports:
-  - name: http
-    port: 80
+  - port: 8080
     targetPort: 80
-    nodePort: 30231
     protocol: TCP
   selector:
     app.kubernetes.io/name: django

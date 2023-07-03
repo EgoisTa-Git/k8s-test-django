@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: django-migrate-job
+  namespace: edu-happy-goldberg
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 30
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      containers:
+        - name: django
+          image: egoista1dev/k8s-test-django:092e731
+          ports:
+            - containerPort: 80
+          imagePullPolicy: IfNotPresent
+          command: [ "python", "manage.py", "migrate", "--no-input" ]
+          envFrom:
+            - configMapRef:
+                name: django-config
+            - secretRef:
+                name: django-secrets
+      restartPolicy: Never
